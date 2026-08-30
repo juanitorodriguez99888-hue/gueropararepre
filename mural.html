@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mural - Escombro a Recurso</title>
+  <style>
+    :root{
+      --green:#2f8f3b;
+      --light:#f6fbf6;
+      --white:#ffffff;
+      --muted:#ecf6ec;
+      --dark:#073216;
+      --card-shadow:0 10px 30px rgba(7,39,18,0.06);
+      --max-width:1100px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, "Helvetica Neue", Arial, sans-serif;background:var(--light);color:var(--dark)}
+    header{background:linear-gradient(90deg, rgba(47,143,59,0.08), rgba(47,143,59,0.02));border-bottom:1px solid rgba(7,39,18,0.04);position:sticky;top:0;z-index:40}
+    .container{max-width:var(--max-width);margin:18px auto;padding:0 18px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0}
+    .logo{display:flex;align-items:center;gap:12px}
+    .mark{width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,var(--green),#2aa148);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;box-shadow:var(--card-shadow)}
+    .title{font-size:20px;font-weight:800}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .tab{background:var(--white);padding:10px 12px;border-radius:10px;border:2px solid transparent;color:var(--green);font-weight:700;text-decoration:none;cursor:pointer}
+    .tab.active{background:var(--green);color:#fff;border-color:rgba(0,0,0,0.04)}
+    .layout{display:grid;grid-template-columns:1fr;gap:20px;margin-top:16px}
+    .panel{background:var(--white);border-radius:12px;padding:18px;box-shadow:var(--card-shadow);min-height:220px}
+    .panel h2{margin:0 0 10px 0;color:var(--dark)}
+    .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media (max-width:640px){.gallery-grid{grid-template-columns:repeat(2,1fr)}}
+    .thumb{background:linear-gradient(180deg,#eef7ee,#e6f3e6);border-radius:8px;overflow:hidden;height:220px;display:flex;align-items:center;justify-content:center;color:#8aa88b;font-weight:700;position:relative;cursor:pointer;border:1px solid rgba(47,143,59,0.1);transition:transform .15s ease, box-shadow .15s ease}
+    .thumb:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(7,39,18,0.1)}
+    .thumb img, .thumb video{width:100%;height:100%;object-fit:contain;display:block;background:#0b1f14}
+    .thumb .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px}
+    .btn{background:var(--green);color:#fff;padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:800;border:none;cursor:pointer}
+    .ghost{background:transparent;border:2px solid rgba(47,143,59,0.12);color:var(--green);padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:800;cursor:pointer}
+    .tabcontent{display:none;animation:fade .28s ease}
+    .tabcontent.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .small{font-size:13px;color:#2c5a3a}
+    .pro-img-left{float:left;width:140px;margin-right:14px;border-radius:8px;object-fit:cover}
+    .pro-img-large{display:block;margin:18px auto 0;max-width:500px;width:100%;border-radius:8px;object-fit:cover}
+    .meta-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+    .meta-list li{background:var(--muted);padding:10px;border-radius:8px;color:var(--dark);font-weight:600}
+    .residuos-table{width:100%;border-collapse:separate;border-spacing:0;margin-top:14px;border-radius:12px;overflow:hidden;box-shadow:var(--card-shadow)}
+    .residuos-table thead th{background:linear-gradient(180deg,var(--green),#2aa148);color:#fff;text-align:left;padding:14px 16px;font-size:14px;letter-spacing:.02em;text-transform:uppercase}
+    .residuos-table tbody td{padding:13px 16px;border-bottom:1px solid rgba(7,39,18,0.06);font-weight:600;color:var(--dark)}
+    .residuos-table tbody tr:nth-child(even){background:var(--muted)}
+    .residuos-table tbody tr:hover{background:#e3f3e3}
+    .residuos-table tbody tr:last-child td{border-bottom:none}
+    .residuos-table td.num{font-weight:800;color:var(--green)}
+    .residuos-table td.tipo{display:flex;align-items:center;gap:10px}
+    .tipo-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+    .residuos-table-wrap{overflow-x:auto}
+
+    /* ---- Gráfica de materiales observados ---- */
+    .chart-card{margin-top:24px;padding:18px;border-radius:12px;background:linear-gradient(180deg,#f6fbf6,#fff);border:1px solid rgba(47,143,59,0.12)}
+    .chart-title{font-size:17px;font-weight:800;margin:0 0 4px;color:var(--dark)}
+    .chart-subtitle{font-size:13px;color:#4b7a5a;margin:0 0 18px}
+    .bar-chart{height:290px;display:flex;align-items:flex-end;gap:12px;border-bottom:2px solid rgba(7,39,18,0.15);padding:12px 8px 0;overflow-x:auto}
+    .bar-item{min-width:78px;flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+    .bar{width:70%;min-height:10px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--green),#70b97a);display:flex;align-items:flex-start;justify-content:center;padding-top:7px;color:#fff;font-weight:800;font-size:13px;transition:transform .2s ease}
+    .bar:hover{transform:scaleY(1.03);transform-origin:bottom}
+    .bar-label{text-align:center;font-size:12px;font-weight:700;color:var(--dark);min-height:32px;display:flex;align-items:center}
+
+    /* ---- Problemática: infografía en HTML ---- */
+    .problem-layout{display:grid;grid-template-columns:1fr 200px;gap:24px;align-items:start}
+    @media (max-width:820px){.problem-layout{grid-template-columns:1fr}}
+    .problem-intro{font-size:15px;color:var(--dark);margin:6px 0 20px;font-weight:500}
+    .profile-card{display:flex;flex-direction:column;align-items:center;gap:10px;position:sticky;top:90px}
+    .profile-card img{width:170px;height:170px;object-fit:cover;border-radius:50%;border:4px solid var(--white);box-shadow:var(--card-shadow)}
+    .profile-card .small{text-align:center}
+    @media (max-width:820px){.profile-card{position:static;flex-direction:row;justify-content:flex-start}.profile-card img{width:90px;height:90px}}
+
+    .problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+    @media (max-width:760px){.problem-grid{grid-template-columns:1fr}}
+    .problem-card{background:var(--muted);border-radius:10px;padding:16px}
+    .problem-card .card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .problem-card .card-icon{width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:0 2px 6px rgba(7,39,18,0.08)}
+    .problem-card h4{margin:0;font-size:15px;color:var(--dark)}
+    .problem-card p{margin:0 0 8px;font-size:13.5px;color:#355a41;line-height:1.5}
+    .problem-card p:last-child{margin-bottom:0}
+
+    .solutions-bar{display:flex;flex-wrap:wrap;gap:10px;background:#fff;border:2px solid var(--muted);border-radius:10px;padding:14px 16px;margin-bottom:22px}
+    .solutions-bar .sol-title{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--green);font-size:14px;padding-right:14px;border-right:1px solid rgba(7,39,18,0.08)}
+    .sol-item{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--dark);font-weight:600}
+    .sol-item .icon-badge{width:26px;height:26px}
+    .sol-item .icon-badge .icon{width:14px;height:14px}
+
+    .flow-diagram{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+    .flow-step{font-weight:800;color:var(--dark);font-size:14.5px;background:var(--muted);padding:8px 14px;border-radius:999px}
+    .flow-arrow{color:#9bbf9f;font-size:18px}
+    .flow-tagline{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,var(--muted),#fff);border-left:4px solid var(--green);border-radius:8px;padding:12px 16px;font-weight:700;font-size:14px;color:var(--dark)}
+
+    /* ---- Íconos SVG reutilizables (sin emojis) ---- */
+    .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+    .icon-badge{width:36px;height:36px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(7,39,18,0.08)}
+    .icon-badge--orange{color:#c1611a}
+    .icon-badge--blue{color:#2f6fa3}
+    .icon-badge--green{color:var(--green)}
+    .icon-badge--dark{color:var(--dark)}
+
+    /* ---- Propósito decorado ---- */
+    .hero-panel{position:relative;overflow:hidden;padding-top:22px}
+    .hero-panel::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--green),#8fd39a,var(--green))}
+    .hero-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px}
+    .hero-head .icon-badge{width:52px;height:52px;background:var(--muted)}
+    .hero-head .icon-badge .icon{width:26px;height:26px}
+    .hero-underline{width:60px;height:4px;background:var(--green);border-radius:4px;margin:8px 0 18px}
+    .lead-text{font-size:16px;line-height:1.7;color:var(--dark);max-width:680px}
+    .feature-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+    .feature-chip{display:flex;align-items:center;gap:10px;background:var(--muted);border-radius:999px;padding:9px 16px 9px 9px;font-weight:700;font-size:13.5px;color:var(--dark)}
+    .feature-chip .icon-badge{width:28px;height:28px}
+    .feature-chip .icon-badge .icon{width:16px;height:16px}
+
+    /* ---- Conclusión decorada ---- */
+    .conclusion-lead{font-size:16.5px;font-weight:600;color:var(--dark);border-left:3px solid var(--green);padding-left:16px;margin-bottom:18px}
+    .conclusion-callout{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(135deg,var(--muted),#fff);border-radius:10px;padding:18px 20px;margin-top:8px;border:1px solid rgba(47,143,59,0.15)}
+    .conclusion-callout .icon-badge{background:var(--green);color:#fff;width:40px;height:40px}
+    .conclusion-callout p{margin:0;font-weight:700;color:var(--dark);font-size:14.5px}
+
+    /* ---- Propuestas de acción ---- */
+    .proposal-layout{display:grid;grid-template-columns:1fr 300px;gap:30px;align-items:center}
+    @media (max-width:860px){.proposal-layout{grid-template-columns:1fr}}
+    .proposal-list{display:flex;flex-direction:column;gap:16px}
+    .proposal-card{display:flex;gap:14px;background:var(--muted);border-radius:10px;padding:16px 18px}
+    .proposal-card .icon-badge{background:#fff;width:42px;height:42px}
+    .proposal-card .icon-badge .icon{width:22px;height:22px}
+    .proposal-card h4{margin:0 0 6px;font-size:15.5px;color:var(--dark)}
+    .proposal-card p{margin:0;font-size:13.5px;color:#355a41;line-height:1.55}
+    .proposal-num{position:absolute;top:-10px;right:-6px;background:var(--green);color:#fff;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(7,39,18,0.15)}
+    .proposal-card .icon-wrap{position:relative}
+
+    .photo-collage{position:relative;width:270px;height:320px;margin:0 auto}
+    .photo-collage .pc-circle{position:absolute;border-radius:50%;overflow:hidden;border:6px solid #fff;box-shadow:0 10px 24px rgba(7,39,18,0.15)}
+    .photo-collage .pc-circle img{width:100%;height:100%;object-fit:cover;display:block}
+    .photo-collage .pc-lg{width:200px;height:200px;top:70px;left:20px;z-index:2}
+    .photo-collage .pc-sm1{width:110px;height:110px;top:0;right:0;z-index:1}
+    .photo-collage .pc-sm2{width:120px;height:120px;bottom:0;right:10px;z-index:3}
+    .photo-collage .pc-badge{position:absolute;top:36%;left:-14px;width:56px;height:56px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(7,39,18,0.2);z-index:4}
+    .photo-collage .pc-badge .icon{width:28px;height:28px}
+    @media (max-width:860px){.photo-collage{margin:10px auto 0}}
+
+    /* ---- QR ---- */
+    .qr-layout{display:flex;gap:28px;align-items:center;flex-wrap:wrap;margin-top:20px}
+    .qr-frame{background:#fff;border:2px solid var(--muted);border-radius:14px;padding:16px;box-shadow:var(--card-shadow);flex-shrink:0}
+    .qr-frame img{width:180px;height:180px;display:block}
+    .qr-info{flex:1;min-width:220px}
+
+    /* ---- Espacio de audio ---- */
+    .audio-slot{margin-top:18px;border:2px dashed rgba(47,143,59,0.3);border-radius:12px;padding:22px;display:flex;align-items:center;gap:16px;background:var(--muted)}
+    .audio-slot .icon-badge{width:44px;height:44px;background:#fff;color:var(--green);flex-shrink:0}
+    .audio-slot .icon-badge .icon{width:22px;height:22px}
+    .audio-slot-text strong{display:block;color:var(--dark);font-size:14.5px;margin-bottom:3px}
+    .audio-slot-text span{font-size:13px;color:#4b7a5a}
+    audio{width:100%;margin-top:14px;accent-color:var(--green);display:block}
+
+    /* ---- Más vida en general ---- */
+    body::before{content:"";position:fixed;top:-120px;right:-100px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(47,143,59,0.16),transparent 72%);pointer-events:none;z-index:0}
+    body::after{content:"";position:fixed;bottom:-160px;left:-120px;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(47,143,59,0.13),transparent 72%);pointer-events:none;z-index:0}
+    .container{position:relative;z-index:1}
+    .mark{transition:transform .2s ease}
+    .logo:hover .mark{transform:rotate(-6deg) scale(1.05)}
+    .tab{transition:transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease}
+    .tab:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(7,39,18,0.08);color:var(--dark)}
+    .tab.active:hover{color:#fff}
+    .panel{transition:box-shadow .2s ease}
+    .panel:hover{box-shadow:0 14px 36px rgba(7,39,18,0.09)}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:120}
+    .modal.open{display:flex}
+    .modal-content{max-width:94vw;max-height:94vh;border-radius:10px;overflow:visible;position:relative;background:#000;display:flex;align-items:center;justify-content:center}
+    .modal-content img, .modal-content video{display:block;max-width:90vw;max-height:90vh;width:auto;height:auto;border-radius:10px}
+    .modal-close{position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.12);color:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .modal-nav{position:absolute;top:50%;transform:translateY(-50%);left:10px;color:#fff;background:rgba(0,0,0,0.2);border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .modal-nav.right{left:auto;right:10px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="top">
+        <div class="logo">
+          <div class="mark">ER</div>
+          <div>
+            <div class="title">Escombro a Recurso</div>
+            <div class="small">Avenida Edison, Monterrey, Nuevo León</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <a href="index.html" class="ghost">Volver</a>
+        </div>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Secciones del mural">
+        <button class="tab active" data-target="proposito" role="tab">Propósito</button>
+        <button class="tab" data-target="descripcion" role="tab">Descripción</button>
+        <button class="tab" data-target="registro" role="tab">Registro</button>
+        <button class="tab" data-target="galeria" role="tab">Galería</button>
+        <button class="tab" data-target="problematica" role="tab">Problemática</button>
+        <button class="tab" data-target="qr" role="tab">QR</button>
+        <button class="tab" data-target="conclusion" role="tab">Conclusión</button>
+        <button class="tab" data-target="propuesta" role="tab">Propuestas</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" role="main">
+    <div class="layout">
+      <section>
+        <article id="proposito" class="panel tabcontent active hero-panel">
+          <div class="hero-head">
+            <div>
+              <h2>Propósito</h2>
+              <div class="hero-underline"></div>
+            </div>
+            <div class="icon-badge icon-badge--green">
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+          </div>
+          <p class="lead-text">Crear conciencia sobre la importancia de reducir, reutilizar y reciclar los residuos de construcción, mostrando cómo estos desechos afectan al medio ambiente y promoviendo prácticas responsables para mantener espacios más limpios y sostenibles.</p>
+          <div class="feature-row">
+            <div class="feature-chip">
+              <span class="icon-badge icon-badge--blue"><svg class="icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>
+              Concientizar
+            </div>
+            <div class="feature-chip">
+              <span class="icon-badge icon-badge--orange"><svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+              Reducir impacto
+            </div>
+            <div class="feature-chip">
+              <span class="icon-badge icon-badge--green"><svg class="icon" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
+              Promover acción
+            </div>
+          </div>
+        </article>
+
+        <article id="descripcion" class="panel tabcontent hero-panel">
+          <div class="hero-head">
+            <div>
+              <h2>Descripción de la comunidad</h2>
+              <div class="hero-underline"></div>
+            </div>
+            <div class="icon-badge icon-badge--blue">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M3 21v-13l9-4 9 4v13"/><path d="M9 21v-8h6v8"/></svg>
+            </div>
+          </div>
+          <p class="lead-text">Avenida Edison es una zona con obras y remodelaciones frecuentes. Se observan acumulaciones de escombros en espacios públicos y privados que generan inconvenientes.</p>
+
+          <div class="audio-slot">
+            <span class="icon-badge">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </span>
+            <div class="audio-slot-text">
+              <strong>Testimonio en audio</strong>
+              <span>Entrevista realizada a la comunidad.</span>
+              <audio controls><source src="entrevista.mp3" type="audio/mpeg">Tu navegador no admite el elemento de audio.</audio>
+            </div>
+          </div>
+        </article>
+
+        <article id="registro" class="panel tabcontent hero-panel">
+          <div class="hero-head">
+            <div>
+              <h2>Registro de observación</h2>
+              <div class="hero-underline"></div>
+            </div>
+            <div class="icon-badge icon-badge--orange">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+          </div>
+          <div class="small">Conteo y transformación de residuos detectados en campo</div>
+          <div class="residuos-table-wrap">
+            <table class="residuos-table">
+              <thead>
+                <tr>
+                  <th>Tipo de residuo o situación observada</th>
+                  <th>Cantidad aprox. (número)</th>
+                  <th>Transformación observada</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="tipo"><span class="tipo-dot" style="background:#3aa6d6"></span>Plástico</td>
+                  <td class="num">18</td>
+                  <td>Acumulación</td>
+                </tr>
+                <tr>
+                  <td class="tipo"><span class="tipo-dot" style="background:#b5651d"></span>Varilla</td>
+                  <td class="num">23</td>
+                  <td>Reutilización</td>
+                </tr>
+                <tr>
+                  <td class="tipo"><span class="tipo-dot" style="background:#7a7a7a"></span>Piedra</td>
+                  <td class="num">56</td>
+                  <td>Acumulación</td>
+                </tr>
+                <tr>
+                  <td class="tipo"><span class="tipo-dot" style="background:#c2a56d"></span>Arena</td>
+                  <td class="num">15</td>
+                  <td>Acumulación</td>
+                </tr>
+                <tr>
+                  <td class="tipo"><span class="tipo-dot" style="background:#8aa0a8"></span>Papel</td>
+                  <td class="num">8</td>
+                  <td>Combustión</td>
+                </tr>
+                <tr>
+                  <td class="tipo"><span class="tipo-dot" style="background:#6b8e23"></span>Orgánico</td>
+                  <td class="num">6</td>
+                  <td>Acumulación</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="chart-card" aria-label="Gráfica de cantidades aproximadas de materiales observados">
+            <h3 class="chart-title">Gráfica de materiales observados</h3>
+            <p class="chart-subtitle">Comparación de las cantidades aproximadas registradas.</p>
+            <div class="bar-chart">
+              <div class="bar-item"><div class="bar" style="height:32%">18</div><div class="bar-label">Plástico</div></div>
+              <div class="bar-item"><div class="bar" style="height:41%">23</div><div class="bar-label">Varilla</div></div>
+              <div class="bar-item"><div class="bar" style="height:100%">56</div><div class="bar-label">Piedra</div></div>
+              <div class="bar-item"><div class="bar" style="height:27%">15</div><div class="bar-label">Arena</div></div>
+              <div class="bar-item"><div class="bar" style="height:14%">8</div><div class="bar-label">Papel</div></div>
+              <div class="bar-item"><div class="bar" style="height:11%">6</div><div class="bar-label">Orgánico</div></div>
+            </div>
+          </div>
+        </article>
+
+        <article id="galeria" class="panel tabcontent hero-panel">
+          <div class="hero-head">
+            <div>
+              <h2>Galería</h2>
+              <div class="hero-underline"></div>
+            </div>
+            <div class="icon-badge icon-badge--blue">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            </div>
+          </div>
+          <div class="small" style="margin-bottom:10px">Imágenes de registro y video</div>
+          <div class="gallery-grid">
+            <div class="thumb" data-type="image" data-src="gallery1.jpg" tabindex="0">
+              <img src="gallery1.jpg" alt="Escombros 1">
+            </div>
+            <div class="thumb" data-type="image" data-src="gallery2.jpg" tabindex="0">
+              <img src="gallery2.jpg" alt="Escombros 2">
+            </div>
+            <div class="thumb" data-type="image" data-src="gallery3.jpg" tabindex="0">
+              <img src="gallery3.jpg" alt="Escombros 3">
+            </div>
+            <div class="thumb" data-type="video" data-src="video.mp4" tabindex="0">
+              <video src="video.mp4" poster="video-poster.jpg" muted preload="metadata"></video>
+              <div class="play">▶</div>
+            </div>
+          </div>
+        </article>
+
+        <article id="problematica" class="panel tabcontent">
+          <h2>Residuos de Construcción</h2>
+          <div class="small" style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:10px">¿Qué sucede, dónde ocurre y por qué es un problema?</div>
+
+          <div class="problem-layout">
+            <div>
+              <p class="problem-intro">Materiales resultantes de construir, reparar, remodelar, excavar o demoler.</p>
+
+              <div class="problem-grid">
+                <div class="problem-card">
+                  <div class="card-head">
+                    <span class="icon-badge icon-badge--orange"><svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+                    <h4>¿Qué sucede?</h4>
+                  </div>
+                  <p>Las obras generan escombros.</p>
+                  <p>Si no se separan, recolectan ni llevan a sitios autorizados, se acumulan en calles, terrenos baldíos, barrancas, zonas naturales o cerca de cuerpos de agua.</p>
+                </div>
+                <div class="problem-card">
+                  <div class="card-head">
+                    <span class="icon-badge icon-badge--blue"><svg class="icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+                    <h4>¿Dónde ocurre?</h4>
+                  </div>
+                  <p>En viviendas, edificios, calles, carreteras, infraestructura, remodelaciones y demoliciones.</p>
+                  <p>También en depósitos clandestinos. En México, los RCD son residuos de manejo especial.</p>
+                </div>
+                <div class="problem-card">
+                  <div class="card-head">
+                    <span class="icon-badge icon-badge--green"><svg class="icon" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
+                    <h4>¿Por qué es un problema?</h4>
+                  </div>
+                  <p>Contaminan suelo, agua y aire. Afectan plantas y animales.</p>
+                  <p>Obstruyen drenajes y aumentan riesgo de inundaciones. Desperdician materiales aprovechables.</p>
+                </div>
+              </div>
+
+              <div class="solutions-bar">
+                <div class="sol-title">
+                  <svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="m17 2 4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg>
+                  Soluciones
+                </div>
+                <div class="sol-item"><span class="icon-badge icon-badge--dark"><svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span> Separar desde la obra</div>
+                <div class="sol-item"><span class="icon-badge icon-badge--green"><svg class="icon" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg></span> Reutilizar, reciclar y reducir</div>
+                <div class="sol-item"><span class="icon-badge icon-badge--blue"><svg class="icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span> Llevar a sitios autorizados</div>
+              </div>
+
+              <div class="flow-diagram">
+                <span class="flow-step">Construcción</span>
+                <span class="flow-arrow"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                <span class="flow-step">Residuos</span>
+                <span class="flow-arrow"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                <span class="flow-step">Transporte</span>
+                <span class="flow-arrow"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                <span class="flow-step">Disposición</span>
+              </div>
+
+              <div class="flow-tagline">
+                <span class="icon-badge icon-badge--green" style="width:28px;height:28px;background:#fff;flex-shrink:0"><svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg></span>
+                Reducir, reutilizar y reciclar los residuos de construcción ayuda a proteger nuestra comunidad y el medio ambiente.
+              </div>
+            </div>
+
+            <div class="profile-card">
+              <img src="profile-photo.png" alt="Foto del responsable del mural">
+            </div>
+          </div>
+        </article>
+
+        <article id="qr" class="panel tabcontent hero-panel">
+          <div class="hero-head">
+            <div>
+              <h2>Código QR</h2>
+              <div class="hero-underline"></div>
+            </div>
+            <div class="icon-badge icon-badge--green">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><line x1="14" y1="14" x2="14" y2="21"/><line x1="21" y1="14" x2="21" y2="21"/><line x1="14" y1="17.5" x2="21" y2="17.5"/></svg>
+            </div>
+          </div>
+          <p class="lead-text">Escanea el código para llegar directo a la ubicación del punto de observación en Avenida Edison.</p>
+
+          <div class="qr-layout">
+            <div class="qr-frame">
+              <img src="qr-ubicacion.png" alt="Código QR de la ubicación en Avenida Edison">
+            </div>
+            <div class="qr-info">
+              <div class="feature-chip">
+                <span class="icon-badge icon-badge--blue"><svg class="icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+                Ubicación del sitio
+              </div>
+              <p class="small" style="margin:14px 0 18px">Ábrelo desde la cámara de tu celular o toca el botón para abrir el mapa directamente.</p>
+              <a class="btn" href="https://maps.app.goo.gl/SkmraLeuTGUoJtM86" target="_blank" rel="noopener">Abrir ubicación</a>
+            </div>
+          </div>
+        </article>
+
+        <article id="conclusion" class="panel tabcontent hero-panel">
+          <div class="hero-head">
+            <div>
+              <h2>Conclusión</h2>
+              <div class="hero-underline"></div>
+            </div>
+            <div class="icon-badge icon-badge--green">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+            </div>
+          </div>
+          <p class="conclusion-lead">Los escombros de las construcciones nos rodean todos los días: un montón de ladrillos en una esquina, un saco de cemento roto, restos de azulejos o varillas oxidadas. Con tanta prisa, muchas veces los vemos simplemente como basura molesta o terminamos por ignorarlos.</p>
+          <p>El problema real nace de la desinformación. Al no saber qué hacer con ellos o dónde llevarlos, se terminan acumulando en tiraderos clandestinos, contaminando el suelo que pisamos, el aire que respiramos y el agua de nuestros ríos.</p>
+          <p>La buena noticia es que gran parte de estos materiales aún tienen vida útil. Ese pedazo de concreto o esa madera no son el final del camino; pueden transformarse, reusarse y convertirse en la base de algo nuevo sin necesidad de seguir explotando la naturaleza.</p>
+          <div class="conclusion-callout">
+            <span class="icon-badge"><svg class="icon" viewBox="0 0 24 24" style="stroke:#fff"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+            <p>No necesitamos soluciones gigantes de la noche a la mañana. Con pequeñas acciones informadas en nuestras obras o remodelaciones (empezando por separar lo que sirve de lo que no) podemos marcar una diferencia gigantesca para nuestra comunidad y para las familias que la habitan.</p>
+          </div>
+        </article>
+
+        <article id="propuesta" class="panel tabcontent hero-panel">
+          <div class="hero-head">
+            <div>
+              <h2>Propuestas de Acción</h2>
+              <div class="hero-underline"></div>
+            </div>
+          </div>
+
+          <div class="proposal-layout">
+            <div class="proposal-list">
+              <div class="proposal-card">
+                <div class="icon-wrap">
+                  <span class="icon-badge icon-badge--dark">
+                    <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </span>
+                  <span class="proposal-num">1</span>
+                </div>
+                <div>
+                  <h4>Separar los residuos desde el origen</h4>
+                  <p>Clasificar madera, metales, concreto, vidrio, plástico y residuos peligrosos desde el lugar donde se generan.</p>
+                </div>
+              </div>
+
+              <div class="proposal-card">
+                <div class="icon-wrap">
+                  <span class="icon-badge icon-badge--green">
+                    <svg class="icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  </span>
+                  <span class="proposal-num">2</span>
+                </div>
+                <div>
+                  <h4>Reutilizar materiales</h4>
+                  <p>Aprovechar piezas de madera, ladrillos, concreto, tuberías y otros materiales que todavía puedan utilizarse en la misma obra o en otros proyectos.</p>
+                </div>
+              </div>
+
+              <div class="proposal-card">
+                <div class="icon-wrap">
+                  <span class="icon-badge icon-badge--blue">
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                  </span>
+                  <span class="proposal-num">3</span>
+                </div>
+                <div>
+                  <h4>Reducir el desperdicio de materiales</h4>
+                  <p>Planificar correctamente las cantidades necesarias y realizar cortes precisos para evitar sobrantes innecesarios.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="photo-collage">
+              <div class="pc-circle pc-lg"><img src="gallery1.jpg" alt="Escombro de construcción"></div>
+              <div class="pc-circle pc-sm1"><img src="gallery2.jpg" alt="Residuos apilados"></div>
+              <div class="pc-circle pc-sm2"><img src="gallery3.jpg" alt="Material en obra"></div>
+              <div class="pc-badge">
+                <svg class="icon" viewBox="0 0 24 24" style="stroke:#fff"><path d="m17 2 4 4-4 4"/><path d="M3 12v-2a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 12v2a4 4 0 0 1-4 4H3"/></svg>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-label="Visor multimedia">
+      <button class="modal-close" id="modalClose">Cerrar</button>
+      <button class="modal-nav" id="prev">&#9664;</button>
+      <button class="modal-nav right" id="next">&#9654;</button>
+      <div id="modalInner" style="display:flex;align-items:center;justify-content:center;min-width:300px;min-height:200px"></div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var tabs = document.querySelectorAll('.tab');
+      var contents = document.querySelectorAll('.tabcontent');
+      tabs.forEach(function(tab){
+        tab.addEventListener('click', function(){
+          tabs.forEach(function(t){t.classList.remove('active')});
+          contents.forEach(function(c){c.classList.remove('active')});
+          tab.classList.add('active');
+          var id = tab.getAttribute('data-target');
+          var el = document.getElementById(id);
+          if(el) el.classList.add('active');
+        }, {passive:true});
+      });
+
+      var thumbs = Array.from(document.querySelectorAll('.thumb'));
+      var modal = document.getElementById('modal');
+      var modalInner = document.getElementById('modalInner');
+      var modalClose = document.getElementById('modalClose');
+      var prevBtn = document.getElementById('prev');
+      var nextBtn = document.getElementById('next');
+      var items = thumbs.map(function(t){
+        return {type: t.getAttribute('data-type'), src: t.getAttribute('data-src')};
+      });
+      var current = 0;
+
+      function openModal(index){
+        current = index;
+        renderModal();
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+      }
+      function closeModal(){
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden','true');
+        modalInner.innerHTML = '';
+      }
+      function renderModal(){
+        modalInner.innerHTML = '';
+        var it = items[current];
+        if(!it) return;
+        if(it.type === 'image'){
+          var img = document.createElement('img');
+          img.src = it.src;
+          img.alt = '';
+          modalInner.appendChild(img);
+        } else {
+          var vid = document.createElement('video');
+          vid.src = it.src;
+          vid.poster = 'video-poster.jpg';
+          vid.controls = true;
+          vid.autoplay = true;
+          modalInner.appendChild(vid);
+        }
+      }
+      thumbs.forEach(function(t,i){
+        t.addEventListener('click', function(){ openModal(i); }, {passive:true});
+        t.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') openModal(i); });
+      });
+      modalClose.addEventListener('click', closeModal, {passive:true});
+      modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); }, {passive:true});
+      prevBtn.addEventListener('click', function(){ current = (current - 1 + items.length) % items.length; renderModal(); }, {passive:true});
+      nextBtn.addEventListener('click', function(){ current = (current + 1) % items.length; renderModal(); }, {passive:true});
+    })();
+  </script>
+</body>
+</html>
